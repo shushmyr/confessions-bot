@@ -26,8 +26,10 @@ func TakeTxt(chatID int64, bot *tg.BotAPI) {
 
 func AnonTxt(chatID int64, bot *tg.BotAPI, adminsChatID, userID int64, usrMsg string, userName string) {
   userIDstr := strconv.Itoa(int(userID))
+
   msgToAdmins := tg.NewMessage(adminsChatID, usrMsg + "\n\n#тейк")
-  msgToAdmins2 := tg.NewMessage(adminsChatID, "ID: " + userIDstr)
+  msgToAdmins2 := tg.NewMessage(adminsChatID, "ID: " + "`" + userIDstr + "`")
+  msgToAdmins2.ParseMode = "MarkdownV2"
   bot.Send(msgToAdmins)
   bot.Send(msgToAdmins2)
 
@@ -42,7 +44,8 @@ func NeanonTxt(chatID int64, bot *tg.BotAPI, adminsChatID, userID int64, usrMsg 
   userIDstr := strconv.Itoa(int(userID))
 
   msgToAdmins := tg.NewMessage(adminsChatID, usrMsg + "\n\n#тейк")
-  msgToAdmins2 := tg.NewMessage(adminsChatID, "тейк от @" + userName + " " + "ID: " + userIDstr)
+  msgToAdmins2 := tg.NewMessage(adminsChatID, "тейк от @" + userName + " ID: " + "`" + userIDstr + "`")
+  msgToAdmins2.ParseMode = "MarkdownV2"
   bot.Send(msgToAdmins)
   bot.Send(msgToAdmins2)
   msg := tg.NewMessage(chatID, "тейк был отправлен админам")
