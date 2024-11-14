@@ -61,35 +61,7 @@ func main() {
       case "анон":
         logTxt(msgText, userName)
         handlers.TakeTxt(chatID, bot)
-
-        //цикл для ожидания тейка
-        for u := range updates {
-          //если сообщения нет пропускаем итерацию
-          if u.Message == nil {
-            continue
-          }
-
-          //переменные
-          chatID := u.Message.Chat.ID
-          msgText := u.Message.Text
-          userName := u.SentFrom().UserName    
-          userID := u.SentFrom().ID
-        
-          //если нажата кнопка отмены тейка
-          if msgText == "не хочу отправлять тейк" {
-            handlers.WontWriteTake(chatID, bot)
-      
-            //возврат в стартовое меню
-            handlers.Start(chatID, bot)
-            break
-          }
-          
-          //отправка тейка
-          handlers.AnonTxt(chatID, bot, adminsChatID, userID, msgText, userName)
-          //возврат в стартовое меню
-          handlers.Start(chatID, bot)
-          break
-        }
+        handlers.AnonTxt(updates, bot, adminsChatID)
       case "неанон":
         logTxt(msgText, userName)
         handlers.TakeTxt(chatID, bot)
