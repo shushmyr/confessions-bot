@@ -4,47 +4,31 @@ import (
 	"log"
 	"os"
 
-	"strconv"
-
 	"cf-bot/internal/handlers"
+	"cf-bot/internal/begin"
 
-	tg "github.com/OvyFlash/telegram-bot-api"
 	"github.com/joho/godotenv"
 )
 
 func main() {
   err := godotenv.Load(".env")
   if err != nil {
-    log.Fatal("can't load token")
+    log.Fatal("cant load .env")
   }
 
   token := os.Getenv("TOKEN")
   adminsChatIDstr := os.Getenv("ADM_CHAT")
-  adminsChatIDi, err := strconv.Atoi(adminsChatIDstr)
-  if err != nil {
-    log.Fatal("can't get admins chat id")
-  }
-  adminsChatID := int64(adminsChatIDi)
 
-  bot, err := tg.NewBotAPI(token)
-
-  log.Printf("авторизован под %s", bot.Self.UserName)
-
-  updateConfig := tg.NewUpdate(0)
-  updateConfig.Timeout = 60
-
-  updates := bot.GetUpdatesChan(updateConfig)
+  adminsChatID, updates, bot := begin.Start(token, adminsChatIDstr)
 
   for u := range updates {
     //если нет сообщения пропускаем итерацию
     if u.Message == nil {
       continue
     }
-    
-    //переменные
-    chatID := u.Message.Chat.ID
-    msgText := u.Message.Text
-    userName := u.SentFrom().UserName
+
+    //создаем переменные
+    chatID, msgText, userName := begin.CreateVars(u)
 
     //обрабатываем текст
     if msgText != "" {
@@ -65,41 +49,16 @@ func main() {
       case "неанон":
         logTxt(msgText, userName)
         handlers.TakeTxt(chatID, bot)
-
-        //цикл для ожидания тейка
-        for u := range updates {
-          //если сообщения нет пропускаем итерацию
-          if u.Message == nil {
-            continue
-          } 
-
-          //переменные
-          chatID := u.Message.Chat.ID
-          msgText := u.Message.Text
-          userName := u.SentFrom().UserName
-          userID := u.SentFrom().ID
-        
-          //если нажата кнопка отмены тейка
-          if msgText == "не хочу отправлять тейк" {
-            handlers.WontWriteTake(chatID, bot)
-      
-            //возврат в стартовое меню
-            handlers.Start(chatID, bot)
-            break
-          }
-          
-          //отправка тейка
-          handlers.NeanonTxt(chatID, bot, adminsChatID, userID, msgText, userName) 
-          //возврат в стартовое меню
-          handlers.Start(chatID, bot)
-          break
-        } 
+        handlers.NeanonTxt(updates, bot, adminsChatID)
       }
-
     }
   }
 }
   
 func logTxt(text string, username string) {
   log.Printf("сообщение от @%s: %s", username, text)
+}
+
+func logPhoto(username string) {
+  log.Printf("фото от @%s", username)
 }
