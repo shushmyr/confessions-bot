@@ -16,12 +16,23 @@ func Start(chatID int64, bot *tg.BotAPI) {
   bot.Send(msg) 
 }
 
-func TakeTxt(chatID int64, bot *tg.BotAPI) {
+func CheckID(chatID1, chatID2 int64) bool {
+  result := true
+  if chatID1 != chatID2 {
+    result = false
+  }
+
+  return result
+}
+
+func TakeTxt(chatID int64, bot *tg.BotAPI) int64 {
   msg := tg.NewMessage(chatID, texts.Take)
   msg.ReplyMarkup = tg.NewRemoveKeyboard(true)
   msg.ReplyMarkup = keyboards.TakeKB
 
   bot.Send(msg)
+
+  return chatID
 }
 
 func wontWriteTake(chatID int64, bot *tg.BotAPI) {
@@ -30,7 +41,8 @@ func wontWriteTake(chatID int64, bot *tg.BotAPI) {
   bot.Send(msg)
 } 
 
-func AnonTxt(updates tg.UpdatesChannel, bot *tg.BotAPI, adminsChatID int64) {
+func AnonTxt(updates tg.UpdatesChannel, bot *tg.BotAPI, adminsChatID, chatID int64) {
+  chatID1 := TakeTxt(chatID, bot)
   for u := range updates {
     //если сообщения нет пропускаем итерацию
     if u.Message == nil {
@@ -42,7 +54,13 @@ func AnonTxt(updates tg.UpdatesChannel, bot *tg.BotAPI, adminsChatID int64) {
     msgText := u.Message.Text
     userName := u.SentFrom().UserName    
     userID := u.SentFrom().ID
-
+    
+    x := CheckID(chatID, chatID1)
+    if x == false {
+      msg := tg.NewMessage(chatID, "бот занят, подождите несколько секунд")
+      bot.Send(msg)
+      continue 
+    }
   
     //если нажата кнопка отмены тейка
     if msgText == "не хочу отправлять тейк" {
@@ -69,6 +87,7 @@ func AnonTxt(updates tg.UpdatesChannel, bot *tg.BotAPI, adminsChatID int64) {
     log.Printf("анонимный тейк от @%s был отправлен в чат админов", userName)
     //возврат в стартовое меню
     Start(chatID, bot)
+
     break
   }
 }

@@ -44,8 +44,7 @@ func main() {
         handlers.Start(chatID, bot)
       case "анон":
         logTxt(msgText, userName)
-        handlers.TakeTxt(chatID, bot)
-        handlers.AnonTxt(updates, bot, adminsChatID)
+        handlers.AnonTxt(updates, bot, adminsChatID, chatID)
       case "неанон":
         logTxt(msgText, userName)
         handlers.TakeTxt(chatID, bot)
