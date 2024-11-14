@@ -3,7 +3,6 @@ package handlers
 import (
 	"cf-bot/internal/keyboards"
 	"cf-bot/internal/texts"
-	"cf-bot/internal/users"
 	"log"
 	"strconv"
 
@@ -32,8 +31,6 @@ func AnonTxt(chatID int64, bot *tg.BotAPI, adminsChatID, userID int64, usrMsg st
   bot.Send(msgToAdmins)
   bot.Send(msgToAdmins2)
 
-  users.Add(chatID, userID)
-
   msg := tg.NewMessage(chatID, "тейк был отправлен админам")
   msg.ReplyMarkup = tg.NewRemoveKeyboard(true)
   bot.Send(msg)
@@ -48,10 +45,8 @@ func NeanonTxt(chatID int64, bot *tg.BotAPI, adminsChatID, userID int64, usrMsg 
   msgToAdmins2 := tg.NewMessage(adminsChatID, "тейк от @" + userName + " " + "ID: " + userIDstr)
   bot.Send(msgToAdmins)
   bot.Send(msgToAdmins2)
-
-  users.Add(chatID, userID)
-
   msg := tg.NewMessage(chatID, "тейк был отправлен админам")
+
   msg.ReplyMarkup = tg.NewRemoveKeyboard(true)
   bot.Send(msg)
 
@@ -61,15 +56,4 @@ func NeanonTxt(chatID int64, bot *tg.BotAPI, adminsChatID, userID int64, usrMsg 
 func WontWriteTake(chatID int64, bot *tg.BotAPI) {
   msg := tg.NewMessage(chatID, "")
   msg.ReplyMarkup = tg.NewRemoveKeyboard(true) 
-}
-
-func AdmResponse(userID, adminsChatID int64, bot *tg.BotAPI, response, adminUserName string) {
-  chatID := users.GetUser(userID)
-  msg := tg.NewMessage(chatID, response)
-  bot.Send(msg)
-
-  msgToAdmins := tg.NewMessage(adminsChatID, "ответ отправлен")
-  bot.Send(msgToAdmins)
-
-  log.Printf("отправлен ответ пользователю %v от @%s", userID, adminUserName)
 }

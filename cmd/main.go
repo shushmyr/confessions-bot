@@ -3,12 +3,10 @@ package main
 import (
 	"log"
 	"os"
+
 	"strconv"
-	"strings"
 
 	"cf-bot/internal/handlers"
-	"cf-bot/internal/texts"
-	"cf-bot/internal/users"
 
 	tg "github.com/OvyFlash/telegram-bot-api"
 	"github.com/joho/godotenv"
@@ -17,11 +15,16 @@ import (
 func main() {
   err := godotenv.Load(".env")
   if err != nil {
-    panic("can't load token")
+    log.Fatal("can't load token")
   }
 
   token := os.Getenv("TOKEN")
-  adminsChatID := int64(-1002269839756)
+  adminsChatIDstr := os.Getenv("ADM_CHAT")
+  adminsChatIDi, err := strconv.Atoi(adminsChatIDstr)
+  if err != nil {
+    log.Fatal("can't get admins chat id")
+  }
+  adminsChatID := int64(adminsChatIDi)
 
   bot, err := tg.NewBotAPI(token)
 
@@ -42,51 +45,16 @@ func main() {
     chatID := u.Message.Chat.ID
     msgText := u.Message.Text
     userName := u.SentFrom().UserName
-    userID := u.SentFrom().ID
-
-    banned := users.CheckIfBanned(userID)
-    if banned == true {
-      msg := tg.NewMessage(chatID, "ты забанен")
-      bot.Send(msg)
-      logTxt(msgText, userName)
-      log.Printf("забаненный пользователь @%s писал сообщение", userName)
-      break
-    }
-
 
     //обрабатываем текст
     if msgText != "" {
       //если от админов
       if chatID == adminsChatID {
-        switch msgText {
-        case "/response":
-          logTxt(msgText, userName)
-
-          admID := u.SentFrom().ID
-          msg := tg.NewMessage(chatID, texts.AdmResponse)
-          bot.Send(msg)
-
-          for u := range updates {
-            if u.SentFrom().ID != admID {
-              continue
-            }
-            
-            msgText := strings.Split(u.Message.Text, ",")
-            userIDi, err := strconv.Atoi(msgText[0])
-            if err != nil {
-              log.Println("не удалось сконвертировать userID в число")
-            }
-
-            userID := int64(userIDi)
-            response := msgText[1]
-            adminUserName := u.SentFrom().UserName
-
-            handlers.AdmResponse(userID, adminsChatID, bot, response, adminUserName)
-            break
-          }
-        }
+         
       }
+      //если не от админа
       switch msgText {
+      //стартовое меню
       case "/start":
         logTxt(msgText, userName)
         handlers.Start(chatID, bot)
@@ -115,7 +83,8 @@ func main() {
             handlers.Start(chatID, bot)
             break
           }
-        
+          
+          //отправка тейка
           handlers.AnonTxt(chatID, bot, adminsChatID, userID, msgText, userName)
           //возврат в стартовое меню
           handlers.Start(chatID, bot)
@@ -146,7 +115,8 @@ func main() {
             handlers.Start(chatID, bot)
             break
           }
-        
+          
+          //отправка тейка
           handlers.NeanonTxt(chatID, bot, adminsChatID, userID, msgText, userName) 
           //возврат в стартовое меню
           handlers.Start(chatID, bot)
